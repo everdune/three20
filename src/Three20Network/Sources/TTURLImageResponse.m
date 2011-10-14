@@ -63,7 +63,7 @@
     // downloaded? This needs to be tested in production.
 	UIImage* image = nil;
 	if(!(request.cachePolicy | TTURLRequestCachePolicyNoCache)) {
-      image = [[TTURLCache sharedCache] imageForURL:request.urlPath fromDisk:NO];
+      image = [[TTURLCache cacheWithName:request.cacheName] imageForURL:request.urlPath fromDisk:NO];
   }
     if (nil == image) {
       image = [UIImage imageWithData:data];
@@ -77,7 +77,7 @@
 //          NSData* data = UIImagePNGRepresentation(image);
 //          [[TTURLCache sharedCache] storeData:data forURL:request.URL];
 //        }
-        [[TTURLCache sharedCache] storeImage:image forURL:request.urlPath];
+        [[TTURLCache cacheWithName:request.cacheName] storeImage:image forURL:request.urlPath];
       }
 
       _image = [image retain];

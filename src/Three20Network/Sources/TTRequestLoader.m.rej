@@ -1,0 +1,9 @@
+diff a/src/Three20Network/Sources/TTRequestLoader.m b/src/Three20Network/Sources/TTRequestLoader.m	(rejected hunks)
+@@ -51,6 +52,7 @@ static const NSInteger kLoadMaxRetries = 2;
+   if (self = [super init]) {
+     _urlPath            = [request.urlPath copy];
+     _queue              = queue;
++    _cacheName          = [request.cacheName retain];
+     _cacheKey           = [request.cacheKey retain];
+     _cachePolicy        = request.cachePolicy;
+     _cacheExpirationAge = request.cacheExpirationAge;

@@ -31,6 +31,7 @@
 @implementation TTURLRequestModel
 
 @synthesize loadedTime  = _loadedTime;
+@synthesize cacheName   = _cacheName;
 @synthesize cacheKey    = _cacheKey;
 @synthesize hasNoMore   = _hasNoMore;
 
@@ -42,6 +43,7 @@
 
   TT_RELEASE_SAFELY(_loadingRequest);
   TT_RELEASE_SAFELY(_loadedTime);
+  TT_RELEASE_SAFELY(_cacheName);
   TT_RELEASE_SAFELY(_cacheKey);
 
   [super dealloc];
@@ -50,6 +52,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)reset {
+  TT_RELEASE_SAFELY(_cacheName);
   TT_RELEASE_SAFELY(_cacheKey);
   TT_RELEASE_SAFELY(_loadedTime);
 }
@@ -88,7 +91,7 @@
     NSDate* loadedTime = self.loadedTime;
 
     if (nil != loadedTime) {
-      return -[loadedTime timeIntervalSinceNow] > [TTURLCache sharedCache].invalidationAge;
+		return -[loadedTime timeIntervalSinceNow] > [TTURLCache cacheWithName:_cacheName].invalidationAge;
 
     } else {
       return NO;
@@ -107,12 +110,13 @@
 - (void)invalidate:(BOOL)erase {
   if (nil != _cacheKey) {
     if (erase) {
-      [[TTURLCache sharedCache] removeKey:_cacheKey];
+      [[TTURLCache cacheWithName:_cacheName] removeKey:_cacheKey];
 
     } else {
-      [[TTURLCache sharedCache] invalidateKey:_cacheKey];
+      [[TTURLCache cacheWithName:_cacheName] invalidateKey:_cacheKey];
     }
 
+    TT_RELEASE_SAFELY(_cacheName);
     TT_RELEASE_SAFELY(_cacheKey);
   }
 }
@@ -137,6 +141,7 @@
   if (!self.isLoadingMore) {
     [_loadedTime release];
     _loadedTime = [request.timestamp retain];
+    self.cacheName = request.cacheName;
     self.cacheKey = request.cacheKey;
   }
 

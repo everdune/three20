@@ -118,6 +118,8 @@ static NSMutableDictionary* gNamedCaches = nil;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 + (TTURLCache*)cacheWithName:(NSString*)name {
+  if (nil == name) return [TTURLCache sharedCache];
+
   if (nil == gNamedCaches) {
     gNamedCaches = [[NSMutableDictionary alloc] init];
   }
@@ -132,10 +134,10 @@ static NSMutableDictionary* gNamedCaches = nil;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 + (TTURLCache*)sharedCache {
-  if (nil == gSharedCache) {
-    gSharedCache = [[TTURLCache alloc] init];
-  }
-  return gSharedCache;
+	if (nil == gSharedCache) {
+		gSharedCache = [[TTURLCache alloc] init];
+	}
+	return gSharedCache;
 }
 
 

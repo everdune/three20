@@ -42,6 +42,7 @@
 
   TTURLRequestQueue*      _queue;
 
+  NSString*               _cacheName;
   NSString*               _cacheKey;
   TTURLRequestCachePolicy _cachePolicy;
   NSTimeInterval          _cacheExpirationAge;
@@ -67,6 +68,11 @@
  * The common urlPath shared by every request.
  */
 @property (nonatomic, readonly) NSString* urlPath;
+
+/**
+ * The common cacheName shared by every request.
+ */
+@property (nonatomic, readonly) NSString* cacheName;
 
 /**
  * The common cacheKey shared by every request.

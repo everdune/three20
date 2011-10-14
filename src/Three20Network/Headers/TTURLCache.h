@@ -72,7 +72,8 @@
 
 
 /**
- * Gets a shared cache identified with a unique name.
+ * Gets a shared cache identified with a unique name. Or if name is nil it gets the shared cache
+ * singleton used across the application.
  */
 + (TTURLCache*)cacheWithName:(NSString*)name;
 

@@ -96,6 +96,11 @@ static TTURLRequestQueue* gMainQueue = nil;
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+- (NSString*)loaderKeyForCacheName:(NSString*)cacheName key:(NSString*)cacheKey {
+  return (nil == cacheName) ? cacheKey : [NSString stringWithFormat:@"%@@%@", cacheKey, cacheName];
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
 /**
  * TODO (jverkoey May 3, 2010): Clean up this redundant code.
  */
@@ -146,6 +151,7 @@ static TTURLRequestQueue* gMainQueue = nil;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 - (BOOL)loadFromCache: (NSString*)URL
+			cacheName: (NSString*)cacheName
              cacheKey: (NSString*)cacheKey
               expires: (NSTimeInterval)expirationAge
              fromDisk: (BOOL)fromDisk
@@ -158,7 +164,7 @@ static TTURLRequestQueue* gMainQueue = nil;
     return NO;
   }
 
-  UIImage* image = [[TTURLCache sharedCache] imageForURL:URL fromDisk:fromDisk];
+	UIImage* image = [[TTURLCache cacheWithName:cacheName] imageForURL:URL fromDisk:fromDisk];
 
   if (nil != image) {
     *data = image;
@@ -174,7 +180,7 @@ static TTURLRequestQueue* gMainQueue = nil;
       return YES;
 
     } else {
-      *data = [[TTURLCache sharedCache] dataForKey:cacheKey expires:expirationAge
+      *data = [[TTURLCache cacheWithName:cacheName] dataForKey:cacheKey expires:expirationAge
                                         timestamp:timestamp];
       if (*data) {
         return YES;
@@ -188,10 +194,11 @@ static TTURLRequestQueue* gMainQueue = nil;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 - (BOOL)cacheDataExists: (NSString*)URL
+			  cacheName: (NSString*)cacheName
                cacheKey: (NSString*)cacheKey
                 expires: (NSTimeInterval)expirationAge
                fromDisk: (BOOL)fromDisk {
-  BOOL hasData = [[TTURLCache sharedCache] hasImageForURL:URL fromDisk:fromDisk];
+  BOOL hasData = [[TTURLCache cacheWithName:cacheName] hasImageForURL:URL fromDisk:fromDisk];
 
   if (!hasData && fromDisk) {
     if (TTIsBundleURL(URL)) {
@@ -201,7 +208,7 @@ static TTURLRequestQueue* gMainQueue = nil;
       hasData = [self dataExistsInDocuments:URL];
 
     } else {
-      hasData = [[TTURLCache sharedCache] hasDataForKey:cacheKey expires:expirationAge];
+      hasData = [[TTURLCache cacheWithName:cacheName] hasDataForKey:cacheKey expires:expirationAge];
     }
   }
 
@@ -212,7 +219,7 @@ static TTURLRequestQueue* gMainQueue = nil;
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 - (BOOL)loadRequestFromCache:(TTURLRequest*)request {
   if (!request.cacheKey) {
-    request.cacheKey = [[TTURLCache sharedCache] keyForURL:request.urlPath];
+    request.cacheKey = [[TTURLCache cacheWithName:request.cacheName] keyForURL:request.urlPath];
   }
 
   if (IS_MASK_SET(request.cachePolicy, TTURLRequestCachePolicyEtag)) {
@@ -226,7 +233,7 @@ static TTURLRequestQueue* gMainQueue = nil;
     NSDate* timestamp = nil;
     NSError* error = nil;
 
-    if ([self loadFromCache:request.urlPath cacheKey:request.cacheKey
+	  if ([self loadFromCache:request.urlPath cacheName:request.cacheName cacheKey:request.cacheKey
               expires:request.cacheExpirationAge
               fromDisk:!_suspended && (request.cachePolicy & TTURLRequestCachePolicyDisk)
               data:&data error:&error timestamp:&timestamp]) {
@@ -269,11 +276,11 @@ static TTURLRequestQueue* gMainQueue = nil;
   NSError* error = nil;
 
   if ((loader.cachePolicy & (TTURLRequestCachePolicyDisk|TTURLRequestCachePolicyMemory))
-      && [self loadFromCache:loader.urlPath cacheKey:loader.cacheKey
+      && [self loadFromCache:loader.urlPath cacheName:loader.cacheName cacheKey:loader.cacheKey
                expires:loader.cacheExpirationAge
                fromDisk:loader.cachePolicy & TTURLRequestCachePolicyDisk
                data:&data error:&error timestamp:&timestamp]) {
-    [_loaders removeObjectForKey:loader.cacheKey];
+    [_loaders removeObjectForKey:[self loaderKeyForCacheName:loader.cacheName key:loader.cacheKey]];
 
     if (!error) {
       error = [loader processResponse:nil data:data];
@@ -324,7 +331,7 @@ static TTURLRequestQueue* gMainQueue = nil;
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)removeLoader:(TTRequestLoader*)loader {
   --_totalLoading;
-  [_loaders removeObjectForKey:loader.cacheKey];
+  [_loaders removeObjectForKey:[self loaderKeyForCacheName:loader.cacheName key:loader.cacheKey]];
 }
 
 
@@ -374,7 +381,8 @@ static TTURLRequestQueue* gMainQueue = nil;
   if (![request.httpMethod isEqualToString:@"POST"]
       && ![request.httpMethod isEqualToString:@"PUT"]) {
     // Next, see if there is an active loader for the URL and if so join that bandwagon.
-    loader = [_loaders objectForKey:request.cacheKey];
+    loader = [_loaders objectForKey:[self loaderKeyForCacheName:request.cacheName
+															key:request.cacheKey]];
     if (loader) {
       [loader addRequest:request];
       return NO;
@@ -383,7 +391,8 @@ static TTURLRequestQueue* gMainQueue = nil;
 
   // Finally, create a new loader and hit the network (unless we are suspended)
   loader = [[TTRequestLoader alloc] initForRequest:request queue:self];
-  [_loaders setObject:loader forKey:request.cacheKey];
+  [_loaders setObject:loader forKey:[self loaderKeyForCacheName:request.cacheName
+															key:request.cacheKey]];
   if (_suspended || _totalLoading == kMaxConcurrentLoads) {
     [_loaderQueue addObject:loader];
 
@@ -437,7 +446,8 @@ static TTURLRequestQueue* gMainQueue = nil;
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)cancelRequest:(TTURLRequest*)request {
   if (request) {
-    TTRequestLoader* loader = [_loaders objectForKey:request.cacheKey];
+    TTRequestLoader* loader = [_loaders objectForKey:[self loaderKeyForCacheName:request.cacheName
+																			 key:request.cacheKey]];
     if (loader) {
       [loader retain];
       if (![loader cancel:request]) {
@@ -534,13 +544,14 @@ static TTURLRequestQueue* gMainQueue = nil;
       [URLRequest setValue:[headers objectForKey:key] forHTTPHeaderField:key];
     }
 
-    if (![[TTURLCache sharedCache] disableDiskCache]
+    if (![[TTURLCache cacheWithName:request.cacheName] disableDiskCache]
         && IS_MASK_SET(request.cachePolicy, TTURLRequestCachePolicyEtag)) {
-      NSString* etag = [[TTURLCache sharedCache] etagForKey:request.cacheKey];
+      NSString* etag = [[TTURLCache cacheWithName:request.cacheName] etagForKey:request.cacheKey];
       TTDCONDITIONLOG(TTDFLAG_ETAGS, @"Etag: %@", etag);
 
       if (TTIsStringWithAnyText(etag)
           && [self cacheDataExists: request.urlPath
+						 cacheName: request.cacheName
                           cacheKey: request.cacheKey
                            expires: request.cacheExpirationAge
                           fromDisk: !_suspended
@@ -581,7 +592,7 @@ static TTURLRequestQueue* gMainQueue = nil;
     if (!(loader.cachePolicy & TTURLRequestCachePolicyNoCache)) {
 
       // Store the etag key if the etag cache policy has been requested.
-      if (![[TTURLCache sharedCache] disableDiskCache]
+      if (![[TTURLCache cacheWithName:loader.cacheName] disableDiskCache]
           && IS_MASK_SET(loader.cachePolicy, TTURLRequestCachePolicyEtag)) {
         NSDictionary* headers = [response allHeaderFields];
 
@@ -620,12 +631,12 @@ static TTURLRequestQueue* gMainQueue = nil;
             keyRange.length = (secondQuote.location - firstQuote.location) + 1;
             NSString* etagKey = [etag substringWithRange:keyRange];
             TTDCONDITIONLOG(TTDFLAG_ETAGS, @"Response etag: %@", etagKey);
-            [[TTURLCache sharedCache] storeEtag:etagKey forKey:loader.cacheKey];
+            [[TTURLCache cacheWithName:loader.cacheName] storeEtag:etagKey forKey:loader.cacheKey];
           }
         }
       }
 
-      [[TTURLCache sharedCache] storeData:data forKey:loader.cacheKey];
+      [[TTURLCache cacheWithName:loader.cacheName] storeData:data forKey:loader.cacheKey];
     }
     [loader dispatchLoaded:[NSDate date]];
   }
@@ -644,7 +655,7 @@ static TTURLRequestQueue* gMainQueue = nil;
   NSData* data = nil;
   NSError* error = nil;
   NSDate* timestamp = nil;
-  if ([self loadFromCache:loader.urlPath cacheKey:loader.cacheKey
+  if ([self loadFromCache:loader.urlPath cacheName: loader.cacheName cacheKey:loader.cacheKey
                   expires:TT_CACHE_EXPIRATION_AGE_NEVER
                  fromDisk:!_suspended && (loader.cachePolicy & TTURLRequestCachePolicyDisk)
                      data:&data error:&error timestamp:&timestamp]) {
@@ -695,7 +706,7 @@ static TTURLRequestQueue* gMainQueue = nil;
     [self loadNextInQueue];
 
   } else {
-    [_loaders removeObjectForKey:loader.cacheKey];
+    [_loaders removeObjectForKey:[self loaderKeyForCacheName:loader.cacheName key:loader.cacheKey]];
   }
 }
 

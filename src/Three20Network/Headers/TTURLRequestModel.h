@@ -28,6 +28,7 @@
   TTURLRequest* _loadingRequest;
 
   NSDate*       _loadedTime;
+  NSString*     _cacheName;
   NSString*     _cacheKey;
 
   BOOL          _isLoadingMore;
@@ -38,6 +39,11 @@
  * Valid upon completion of the URL request. Represents the timestamp of the completed request.
  */
 @property (nonatomic, retain) NSDate*   loadedTime;
+
+/**
+ * Valid upon completion of the URL request. Represents the request's cache name.
+ */
+@property (nonatomic, copy)   NSString* cacheName;
 
 /**
  * Valid upon completion of the URL request. Represents the request's cache key.

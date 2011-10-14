@@ -57,6 +57,7 @@ extern const NSTimeInterval TTURLRequestUseQueueTimeout;
   TTURLRequestCachePolicy _cachePolicy;
   NSTimeInterval          _cacheExpirationAge;
   NSString*               _cacheKey;
+  NSString*               _cacheName;
 
   NSDate*               _timestamp;
 
@@ -156,6 +157,11 @@ extern const NSTimeInterval TTURLRequestUseQueueTimeout;
  * By setting the cacheKey, you may override the default cache key generator with your own.
  */
 @property (nonatomic, copy) NSString* cacheKey;
+
+/**
+ * If no cache name is provided, the default shared cache is used, otherwise the named cache.
+ */
+@property (nonatomic, copy) NSString* cacheName;
 
 /**
  * A dummy object used to uniquely identify this request object once it's been sent into the fray.

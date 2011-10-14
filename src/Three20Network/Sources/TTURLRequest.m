@@ -50,6 +50,7 @@ const NSTimeInterval TTURLRequestUseDefaultTimeout = -1.0;
 @synthesize cachePolicy           = _cachePolicy;
 @synthesize cacheExpirationAge    = _cacheExpirationAge;
 @synthesize cacheKey              = _cacheKey;
+@synthesize cacheName             = _cacheName;
 
 @synthesize timestamp             = _timestamp;
 
