@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		6651B75412DB6E9D00E05202 /* TTNavigatorPopoverProtocol.h in Headers */ = {isa = PBXBuildFile; fileRef = 6651B75212DB6E9D00E05202 /* TTNavigatorPopoverProtocol.h */; };
+		6651B75412DB6E9D00E05202 /* TTNavigatorPopoverProtocol.h in Headers */ = {isa = PBXBuildFile; fileRef = 6651B75212DB6E9D00E05202 /* TTNavigatorPopoverProtocol.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		666E16DD12944999001C1D97 /* TTNavigatorRootContainer.h in Headers */ = {isa = PBXBuildFile; fileRef = 666E16DC12944999001C1D97 /* TTNavigatorRootContainer.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		66C3780712F1C60500411196 /* TTNavigatorDisplayProtocol.h in Headers */ = {isa = PBXBuildFile; fileRef = 66C3780612F1C60500411196 /* TTNavigatorDisplayProtocol.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		6E3C35ED118B75800079637E /* TTNavigatorDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E3C35EA118B75800079637E /* TTNavigatorDelegate.h */; settings = {ATTRIBUTES = (Public, ); }; };
