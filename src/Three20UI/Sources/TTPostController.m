@@ -36,6 +36,7 @@
 
 // Core
 #import "Three20Core/TTGlobalCoreLocale.h"
+#import "Three20Core/TTDebug.h"
 #import "Three20Core/TTCorePreprocessorMacros.h"
 #import "Three20Core/NSStringAdditions.h"
 #import "Three20Core/TTGlobalCore.h"
@@ -438,6 +439,20 @@ static const CGFloat kMarginY = 6.0f;
   }
 
   [self showKeyboard];
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+- (void)showFromBarButtonItem:(UIBarButtonItem *)item animated:(BOOL)animated {
+  // WARNING: THIS IS NOT IMPLEMENTED!
+  TTDASSERT(NO);
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+- (void)showFromRect:(CGRect)rect inView:(UIView *)view animated:(BOOL)animated {
+  // WARNING: THIS IS NOT IMPLEMENTED!
+  TTDASSERT(NO);
 }
 
 
