@@ -249,6 +249,8 @@ __attribute__((weak_import));
     if (nil != _rootContainer) {
       [_rootContainer navigator:self setRootViewController:_rootViewController];
 
+    } else if ([self.window respondsToSelector:@selector(setRootViewController:)]) {
+      [self.window setRootViewController:_rootViewController];
     } else {
       [self.window addSubview:_rootViewController.view];
     }
